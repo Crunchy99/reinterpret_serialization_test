@@ -1,8 +1,8 @@
 /*
 Copyright 2024 Gavin Taylor
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the ìSoftwareî), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the ‚ÄúSoftware‚Äù), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED ìAS ISî, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED ‚ÄúAS IS‚Äù, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include <iostream>
@@ -51,10 +51,11 @@ public:
         this->nextAbs = (TerrainMesh*)((intptr_t)pool.start + (intptr_t)this->nextRel);
     }
 
-    TerrainMesh(MemoryPool& pool, TerrainMesh* next, int index)
+
+    TerrainMesh(MemoryPool& pool, int index_next)
     {
-        this->nextAbs = next;
-        this->nextRel = (TerrainMesh*)((intptr_t)sizeof(TerrainMesh)*index);
+        this->nextRel = (TerrainMesh*)((intptr_t)sizeof(TerrainMesh)*index_next);
+        this->nextAbs = (TerrainMesh*)((intptr_t)pool.start + (intptr_t)this->nextRel);
 
         //dummy values - proof of concept
         vertices[256 * 256 * 4 - 1] = 1;
@@ -67,10 +68,10 @@ int main() {
 
     auto memoryPool = MemoryPool();
 
-    auto terrainMesh4 = new (memoryPool.new_alloc(sizeof(TerrainMesh), 4)) TerrainMesh(memoryPool, 0, 3);
-    auto terrainMesh3 = new (memoryPool.next()) TerrainMesh(memoryPool, terrainMesh4, 2);
-    auto terrainMesh2 = new (memoryPool.next()) TerrainMesh(memoryPool, terrainMesh3, 1);
-    auto terrainMesh1 = new (memoryPool.next()) TerrainMesh(memoryPool, terrainMesh2, 0);
+    auto terrainMesh1 = new (memoryPool.new_alloc(sizeof(TerrainMesh), 4)) TerrainMesh(memoryPool, 1);
+    auto terrainMesh2 = new (memoryPool.next()) TerrainMesh(memoryPool, 2);
+    auto terrainMesh3 = new (memoryPool.next()) TerrainMesh(memoryPool, 3);
+    auto terrainMesh4 = new (memoryPool.next()) TerrainMesh(memoryPool, 0);
 
     //serialize to file
     auto ptr = (unsigned char*)((intptr_t)terrainMesh1);
