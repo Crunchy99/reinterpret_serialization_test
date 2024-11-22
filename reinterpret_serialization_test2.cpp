@@ -54,7 +54,7 @@ public:
 struct TerrainMeshStruct
 {
 public:
-    float vertices[256 * 256 * 4];
+    float vertices[256 * 256 * 4 * 3];
     short indices[(256 - 1) * (256 - 1) * 6];
     TerrainMeshStruct* nextRel;
     TerrainMeshStruct* nextAbs;
@@ -68,14 +68,14 @@ public:
         //Here we would update any std::vector instances in program classes
     }
 
-
+    //In this constructor you would want to add "TerrainMesh* Class" and set it
     TerrainMeshStruct(MemoryPool<TerrainMeshStruct>& pool, int index_next)
     {
         this->nextRel = (TerrainMeshStruct*)((intptr_t)sizeof(TerrainMeshStruct)*index_next);
         this->nextAbs = (TerrainMeshStruct*)((intptr_t)pool.start + (intptr_t)this->nextRel);
 
         //dummy values - proof of concept
-        vertices[256 * 256 * 4 - 1] = 1;
+        vertices[256 * 256 * 4 * 3 - 1] = 1;
         indices[((256 - 1) * (256 - 1) * 6) - 1] = 1;
     }
 };
@@ -107,7 +107,7 @@ int main() {
     terrainMesh_2_1->nextAbs->Fixup(memoryPool2);
     terrainMesh_2_1->nextAbs->nextAbs->Fixup(memoryPool2);
     terrainMesh_2_1->nextAbs->nextAbs->nextAbs->Fixup(memoryPool2);
-    if (terrainMesh_2_1->nextAbs->nextAbs->nextAbs->vertices[256 * 256 * 4 - 1] == 1)
+    if (terrainMesh_2_1->nextAbs->nextAbs->nextAbs->vertices[256 * 256 * 4 * 3 - 1] == 1)
         success1 = true;
     if (terrainMesh_2_1->nextAbs->nextAbs->nextAbs->indices[((256 - 1) * (256 - 1) * 6) - 1] == 1)
         success2 = true;
