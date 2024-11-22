@@ -11,24 +11,22 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 #include <exception>
 #include <cstdint>
 
-struct MemoryPool
+template<typename T> struct MemoryPool
 {
 public:
-    void* start;
-    void* memoryPtr;
-    int objSizeInBytes;
+    T* start;
+    T* memoryPtr;
 
-    void* next() {
-        memoryPtr = (void*)((intptr_t)objSizeInBytes + (intptr_t)memoryPtr);
+    T* next() {
+        memoryPtr = (T*)((intptr_t)sizeof(T) + (intptr_t)memoryPtr);
         return memoryPtr;
     }
-    void* new_alloc(int objSizeInBytes, int count)
+    T* new_alloc(int count)
     {
         if (memoryPtr)
             throw std::exception();
 
-        this->objSizeInBytes = objSizeInBytes;
-        memoryPtr = malloc(objSizeInBytes * count);
+        memoryPtr = (T*)malloc(sizeof(T) * count);
         start = memoryPtr;
         return memoryPtr;
     }
@@ -36,26 +34,45 @@ public:
 
 
 
+class TerrainMesh
+{
+public:
+    struct TerrainMeshStruct* Struct;
 
+    void Initialize()
+    {
+        /* Your code here */
+        /* Struct-> .. */
+    }
+    void Draw()
+    {
+        /* Your code here */
+        /* Struct-> .. */
+    }
+};
 
-struct TerrainMesh
+struct TerrainMeshStruct
 {
 public:
     float vertices[256 * 256 * 4];
     short indices[(256 - 1) * (256 - 1) * 6];
-    TerrainMesh* nextAbs;
-    TerrainMesh* nextRel;
+    TerrainMeshStruct* nextRel;
+    TerrainMeshStruct* nextAbs;
+    TerrainMesh* Class;
 
-    void Fixup(MemoryPool& pool)
+    void Fixup(MemoryPool<TerrainMeshStruct>& pool)
     {
-        this->nextAbs = (TerrainMesh*)((intptr_t)pool.start + (intptr_t)this->nextRel);
+        this->nextAbs = (TerrainMeshStruct*)((intptr_t)pool.start + (intptr_t)this->nextRel);
+        this->Class = new TerrainMesh();
+        this->Class->Struct = this;
+        //Here we would update any std::vector instances in program classes
     }
 
 
-    TerrainMesh(MemoryPool& pool, int index_next)
+    TerrainMeshStruct(MemoryPool<TerrainMeshStruct>& pool, int index_next)
     {
-        this->nextRel = (TerrainMesh*)((intptr_t)sizeof(TerrainMesh)*index_next);
-        this->nextAbs = (TerrainMesh*)((intptr_t)pool.start + (intptr_t)this->nextRel);
+        this->nextRel = (TerrainMeshStruct*)((intptr_t)sizeof(TerrainMeshStruct)*index_next);
+        this->nextAbs = (TerrainMeshStruct*)((intptr_t)pool.start + (intptr_t)this->nextRel);
 
         //dummy values - proof of concept
         vertices[256 * 256 * 4 - 1] = 1;
@@ -66,25 +83,24 @@ public:
 
 int main() {
 
-    auto memoryPool = MemoryPool();
+    auto memoryPool = MemoryPool<TerrainMeshStruct>();
 
-    auto terrainMesh1 = new (memoryPool.new_alloc(sizeof(TerrainMesh), 4)) TerrainMesh(memoryPool, 1);
-    auto terrainMesh2 = new (memoryPool.next()) TerrainMesh(memoryPool, 2);
-    auto terrainMesh3 = new (memoryPool.next()) TerrainMesh(memoryPool, 3);
-    auto terrainMesh4 = new (memoryPool.next()) TerrainMesh(memoryPool, 0);
+    auto terrainMesh1 = new (memoryPool.new_alloc(4)) TerrainMeshStruct(memoryPool, 1);
+    auto terrainMesh2 = new (memoryPool.next()) TerrainMeshStruct(memoryPool, 2);
+    auto terrainMesh3 = new (memoryPool.next()) TerrainMeshStruct(memoryPool, 3);
+    auto terrainMesh4 = new (memoryPool.next()) TerrainMeshStruct(memoryPool, 0);
 
     //serialize to file
     auto ptr = (unsigned char*)((intptr_t)terrainMesh1);
-    auto length = memoryPool.objSizeInBytes * 4;
+    auto length = sizeof(TerrainMeshStruct) * 4;
 
     //read in and check our new data
-    auto memoryPool2 = MemoryPool();
-    memoryPool2.objSizeInBytes = sizeof(TerrainMesh);
+    auto memoryPool2 = MemoryPool<TerrainMeshStruct>();
     //unsigned char* inByteArray = new unsigned char[memoryPool2.objSizeInBytes * 4];
     //from here you would use fread() to deserialize from a file. size=1, length=memoryPool2.objSizeInBytes * 4
-    memoryPool2.memoryPtr = ptr;//inByteArray;
-    memoryPool2.start = ptr;//inByteArray;
-    auto terrainMesh_2_1 = reinterpret_cast<TerrainMesh*>(memoryPool2.start);
+    memoryPool2.memoryPtr = (TerrainMeshStruct*)ptr;//inByteArray;
+    memoryPool2.start = (TerrainMeshStruct*)ptr;//inByteArray;
+    auto terrainMesh_2_1 = memoryPool2.start;
     bool success1 = false;
     bool success2 = false;
     terrainMesh_2_1->Fixup(memoryPool2);
