@@ -97,7 +97,7 @@ int main() {
     //read in and check our new data
     auto memoryPool2 = MemoryPool<TerrainMeshStruct>();
     //unsigned char* inByteArray = new unsigned char[memoryPool2.objSizeInBytes * 4];
-    //from here you would use fread() to deserialize from a file. size=1, length=memoryPool2.objSizeInBytes * 4
+    //from here you would use fread() to deserialize from a file. size=1, length=sizeof(TerrainMeshStruct) * 4
     memoryPool2.memoryPtr = (TerrainMeshStruct*)ptr;//inByteArray;
     memoryPool2.start = (TerrainMeshStruct*)ptr;//inByteArray;
     auto terrainMesh_2_1 = memoryPool2.start;
