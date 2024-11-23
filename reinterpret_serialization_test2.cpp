@@ -17,7 +17,7 @@ public:
     T* start;
     T* memoryPtr;
 
-    //Manually construct the data within via new_alloc()
+    //Manually construct the data within via placement new and new_alloc()
     MemoryPool(): start(0), memoryPtr(0) {}
 
     //Construct from file I/O byte buffer
