@@ -17,6 +17,23 @@ public:
     T* start;
     T* memoryPtr;
 
+    //Manually construct the data within via new_alloc()
+    MemoryPool(): start(0), memoryPtr(0) {}
+
+    //Construct from file I/O byte buffer
+    MemoryPool(unsigned char* bytesIn, int count)
+    {
+        memoryPtr = (T*)bytesIn;
+        start = memoryPtr;
+
+        auto next = start;
+        for (int i = 0; i < count; i++)
+        {
+            next->Fixup(*this);
+            next = next->nextAbs;
+        }
+    }
+
     T* next() {
         memoryPtr = (T*)((intptr_t)sizeof(T) + (intptr_t)memoryPtr);
         return memoryPtr;
@@ -74,6 +91,8 @@ public:
         this->nextRel = (TerrainMeshStruct*)((intptr_t)sizeof(TerrainMeshStruct)*index_next);
         this->nextAbs = (TerrainMeshStruct*)((intptr_t)pool.start + (intptr_t)this->nextRel);
 
+        //TODO: Initialize Class field here.
+
         //dummy values - proof of concept
         vertices[256 * 256 * 4 * 3 - 1] = 1;
         indices[((256 - 1) * (256 - 1) * 6) - 1] = 1;
@@ -95,18 +114,12 @@ int main() {
     auto length = sizeof(TerrainMeshStruct) * 4;
 
     //read in and check our new data
-    auto memoryPool2 = MemoryPool<TerrainMeshStruct>();
+    auto memoryPool2 = MemoryPool<TerrainMeshStruct>(ptr, 4);
     //unsigned char* inByteArray = new unsigned char[memoryPool2.objSizeInBytes * 4];
     //from here you would use fread() to deserialize from a file. size=1, length=sizeof(TerrainMeshStruct) * 4
-    memoryPool2.memoryPtr = (TerrainMeshStruct*)ptr;//inByteArray;
-    memoryPool2.start = (TerrainMeshStruct*)ptr;//inByteArray;
     auto terrainMesh_2_1 = memoryPool2.start;
     bool success1 = false;
     bool success2 = false;
-    terrainMesh_2_1->Fixup(memoryPool2);
-    terrainMesh_2_1->nextAbs->Fixup(memoryPool2);
-    terrainMesh_2_1->nextAbs->nextAbs->Fixup(memoryPool2);
-    terrainMesh_2_1->nextAbs->nextAbs->nextAbs->Fixup(memoryPool2);
     if (terrainMesh_2_1->nextAbs->nextAbs->nextAbs->vertices[256 * 256 * 4 * 3 - 1] == 1)
         success1 = true;
     if (terrainMesh_2_1->nextAbs->nextAbs->nextAbs->indices[((256 - 1) * (256 - 1) * 6) - 1] == 1)
