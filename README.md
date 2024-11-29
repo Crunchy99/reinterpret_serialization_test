@@ -1,3 +1,5 @@
+Warning: I use a struct instead of a class for the object graph serialization because of the vtable versioning issues with loading an old data file in your project. As long as the struct fields stay the same, the version of the file is effectively the same (this way) no matter the modification of the class that's being deserialized.
+
 This method is for incredibly fast serialization of object graphs in c++
 
 Ideally you would sort your game objects (such as vertex and index arrays for 3d meshes that go into the millions of counts) by a database index, and that produces a linked list.
